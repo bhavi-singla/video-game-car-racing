@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .hide{
+            display: none;
+        }
+        .CarGame{
+            width: 100%;
+            height: 100vh;
+            background-image: url('gettyimages-645911982-612x612.jpg');
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
+        
+        }
+
+        .car{
+            width: 50px;
+            height: 90px;
+            background-image: url('car.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            position: absolute;
+            bottom: 120px;
+        }
+        .enemy{
+            width: 50px;
+            height: 90px;
+            background-image: url('enemycar.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            position: absolute;
+            bottom: 120px;
+        }
+        .gameArea{
+            width: 400px;
+            height: 100vh;
+            background-color: #2d3436;
+            margin: auto;
+            position: relative;
+            overflow: hidden;
+            border-left: 7px dashed #c8d6e5;
+            border-right: 7px dashed #c8d6e5;
+        }
+        .lines{
+            width: 10px;
+            height: 100px;
+            background-color: white;
+            position: absolute;
+            margin-left: 195px;
+        }
+        .score{
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            background-color:#10ac84;
+            width: 300px;
+            height: 70px ;
+            line-height: 70px;
+            text-align: center;
+            color: white;
+            font-size: 1.5em;
+            font-family: fantasy;
+            box-shadow: 0 5px 5px #777;
+        }
+        .startScreen{
+            position: absolute;
+            background-color: #ee5253;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 50%;
+            padding: 15px;
+            color: white;
+            z-index: 1;
+            border: 1px solid #ff6b6b;
+            text-align: center;
+            line-height: 30px;
+            cursor: pointer;
+            letter-spacing: 3;
+            font-size: 20px;
+            word-spacing: 3;
+            text-transform: uppercase;
+            box-shadow: 0 5px 5px #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="CarGame">
+        <div class="score hide">
+
+        </div>
+        <div class="startScreen">
+            <p>
+                Click here to start!<br>
+                Arrow Keys to move
+            </p>
+        </div>
+        <div class="gameArea"></div>
+    </div>
+    <script>
+        const score = document.querySelector('.score');
+        const startScreen = document.querySelector('.startScreen');
+        const gameArea = document.querySelector('.gameArea');
+        startScreen.addEventListener('click',start);
+        let player={speed:8,score:0};
+        let keys={
+            ArrowLeft : false,
+            ArrowRight : false,
+            ArrowDown : false,
+            Arrow : false
+        }
+        document.addEventListener('keydown',KeyDown);
+        document.addEventListener('keyup',KeyUp);
+
+        function KeyDown(e){
+            e.preventDefault();
+            keys[e.key]=true;
+            //console.log(keys);
+
+        }
+        function KeyUp(e){
+            e.preventDefault();
+            keys[e.key]=false;
+            //console.log(keys);
+
+        }
+        function isCollide(a,b)
+        {
+            arect=a.getBoundingClientRect();
+            brect=b.getBoundingClientRect();
+            return !((arect.bottom < brect.top)||(arect.top > brect.bottom)||(arect.left > brect.right)||(arect.right < brect.left))
+        }
+        function movelines(){
+                let lines = document.querySelectorAll('.lines');
+                lines.forEach(function(item){
+                    if(item.y>=700)
+                        item.y-=750;
+                    item.y+=player.speed;
+                    item.style.top = item.y+"px";
+                })
+            }
+            function endGame(){
+                    player.start=false;
+                    startScreen.classList.remove('hide');
+                    startScreen.innerHTML = "Game Over! <br> Your final score is "+ player.score +" <br> Press here to restart the game"
+            }
+        function moveEnemy(car){
+                let enemy = document.querySelectorAll('.enemy');
+                enemy.forEach(function(item){
+                    if(isCollide(car,item))
+                    {
+                        endGame();
+                    }
+                    if(item.y>=750)
+                     {
+                        item.y=-300;
+                        item.style.left=Math.floor(Math.random()*350)+"px"
+                    }
+                    item.y+=player.speed;
+                    item.style.top = item.y+"px";
+                })
+            }
+        function gamePlay(){
+            
+            let car = document.querySelector('.car');
+            let road = gameArea.getBoundingClientRect();
+            if(player.start)
+            {
+                movelines();
+                moveEnemy(car);
+                if(keys.ArrowUp && player.y> (road.top+100)){
+                    player.y-=player.speed;
+                }
+                if(keys.ArrowDown && player.y <(road.bottom-90))
+                {
+                    player.y+=player.speed;
+                }
+                if(keys.ArrowLeft && player.x>0)
+                {
+                    player.x-=player.speed;
+                }
+                if(keys.ArrowRight && player.x< (road.width-60))
+                {
+                    player.x+=player.speed;
+                }
+                car.style.top=player.y+"px";
+                car.style.left=player.x+"px";
+                window.requestAnimationFrame(gamePlay);
+                //console.log(player.score++);
+                player.score++;
+                ps=player.score-1
+                score.innerText="Score: "+ps;
+            }
+        }
+        function start(){
+            //gameArea.classList.remove('hide');
+            score.classList.remove('hide');
+            gameArea.innerHTML="";
+            startScreen.classList.add('hide');
+            player.start=true;
+            player.score=0;
+            window.requestAnimationFrame(gamePlay);
+            for(x=0;x<5;x++)
+            {
+                let roadLine= document.createElement('div')
+                roadLine.setAttribute('class','lines');
+                roadLine.y=x*150;
+                roadLine.style.top=roadLine.y+"px";
+                gameArea.appendChild(roadLine);
+            }
+            let car=document.createElement('div');
+            car.setAttribute('class','car');
+            gameArea.appendChild(car);
+            player.x= car.offsetLeft;
+            player.y= car.offsetTop;
+            for(x=0;x<3;x++)
+            {
+                let enemyCar= document.createElement('div')
+                enemyCar.setAttribute('class','enemy');
+                enemyCar.y=(x+1)*350*(-1);
+                enemyCar.style.top=enemyCar.y+"px";
+                //enemyCar.style.backgroundColor='purple';
+                enemyCar.style.left=Math.floor(Math.random()*350)+"px";
+                gameArea.appendChild(enemyCar);
+            }
+        }
+    </script>
+</body>
+</html>
